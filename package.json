@@ -1,0 +1,31 @@
+{
+  "name": "gpf-quarter-close",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "smoke": "tsx scripts/smoke.ts",
+    "llm:check": "tsx scripts/llm-live-check.ts"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "dotenv": "latest",
+    "exceljs": "4.4.0",
+    "express": "^5.0.0",
+    "pdfjs-dist": "6.4.299",
+    "tsx": "latest",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "typescript": "~5.9.3",
+    "vitest": "latest"
+  }
+}

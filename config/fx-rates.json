@@ -1,0 +1,9 @@
+{
+  "EUR/USD": {
+    "rate": "1.0666",
+    "rate_date": "2022-12-30",
+    "valuation_date": "2022-12-31",
+    "source": "https://www.ecb.europa.eu/stats/exchange/eurofxref/shared/pdf/2022/12/20221230.pdf",
+    "note": "31 Dec 2022 was a Saturday; last published ECB rate on/before the valuation date"
+  }
+}
