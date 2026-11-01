@@ -44,9 +44,14 @@ function deterministicPostFix(rows: RawRow[], candidates: Categorized[], context
     const fallback = rulesCategorize(rows[index]!, context, index);
     const saleCompanyMismatch = candidate.category === "sale_proceeds" && fallback.company !== null && candidate.company !== fallback.company;
     const missedBankCharge = candidate.category === "expense" && fallback.category === "bank_charges";
-    return saleCompanyMismatch || missedBankCharge
-      ? enrich(rows[index]!, fallback, "rules_fallback")
-      : candidate;
+    if (saleCompanyMismatch || missedBankCharge) {
+      return enrich(rows[index]!, fallback, "rules_fallback");
+    }
+    return {
+      ...candidate,
+      lp_code: candidate.category === "capital_call" || candidate.category === "distribution" ? candidate.lp_code : null,
+      company: candidate.category === "investment_purchase" || candidate.category === "sale_proceeds" ? candidate.company : null
+    };
   });
 }
 
@@ -67,6 +72,7 @@ export async function categorizeAll(rows: RawRow[], deps: CategorizeDeps): Promi
     }
   }
   let candidates = rows.map((row, index) => output.get(index) ?? enrich(row, rulesCategorize(row, deps.ctx, index), "rules_fallback"));
+  candidates = deterministicPostFix(rows, candidates, deps.ctx);
   let issues = validateCategorization(rows, candidates, deps.ctx);
   if (issues.length) {
     const affected = new Set(issues.flatMap((issue) => [...issue.matchAll(/index (\d+)/gi)].map((match) => Number(match[1]))));

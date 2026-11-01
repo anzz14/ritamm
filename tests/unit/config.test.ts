@@ -13,7 +13,15 @@ const baseEnv = {
 
 describe("configuration", () => {
   it("applies defaults while accepting injected values", () => {
-    const env = getEnv({ ...baseEnv, LLM_API_KEY: undefined });
+    const env = getEnv({
+      ...baseEnv,
+      LLM_API_KEY: undefined,
+      AGENT_A_PORT: undefined,
+      AGENT_B_PORT: undefined,
+      PACK_DIR: undefined,
+      OUTPUT_DIR: undefined,
+      THRESHOLD_PCT: undefined
+    });
     expect(env.AGENT_A_PORT).toBe(8001);
     expect(env.AGENT_B_PORT).toBe(8002);
     expect(env.PACK_DIR).toBe("./pack");

@@ -19,6 +19,7 @@ export interface LlmClientOptions {
   sleep?: (milliseconds: number) => Promise<void>;
   cacheDir?: string;
   maxRetries?: number;
+  timeoutMs?: number;
 }
 
 const responseSchema = z.object({
@@ -75,11 +76,13 @@ export class LlmClient {
   private readonly fetchImpl: typeof fetch;
   private readonly sleep: (milliseconds: number) => Promise<void>;
   private readonly maxRetries: number;
+  private readonly timeoutMs: number;
 
   constructor(private readonly options: LlmClientOptions) {
     this.fetchImpl = options.fetchImpl ?? fetch;
     this.sleep = options.sleep ?? defaultSleep;
     this.maxRetries = options.maxRetries ?? 4;
+    this.timeoutMs = options.timeoutMs ?? 10000;
   }
 
   async chatJson<T>(messages: ChatMessage[], schema: z.ZodType<T>): Promise<T> {
@@ -128,18 +131,30 @@ export class LlmClient {
     try {
       response = await this.fetchImpl(`${this.options.baseUrl.replace(/\/$/, "")}/chat/completions`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${this.options.apiKey}`, "content-type": "application/json" },
-        body: JSON.stringify({ model: this.options.model, messages, temperature: 0, max_tokens: 4096 })
+        headers: {
+          Authorization: `Bearer ${this.options.apiKey}`,
+          "content-type": "application/json"
+        },        body: JSON.stringify({ model: this.options.model, messages, temperature: 0, max_tokens: 4096 }),
+        signal: AbortSignal.timeout(this.timeoutMs)
       });
     } catch (error) {
       throw new LlmError("LLM network request failed", { retryable: true, attempt, cause: String(error) });
     }
     if (!response.ok) {
       const retryable = response.status === 429 || response.status >= 500;
-      throw new LlmError(`LLM request failed with status ${response.status}`, {
+      const errorText = await response.text().catch(() => "");
+      let providerMessage = "";
+      try {
+        const parsed = JSON.parse(errorText) as { error?: { message?: unknown } };
+        providerMessage = typeof parsed.error?.message === "string" ? `: ${parsed.error.message}` : "";
+      } catch {
+        providerMessage = "";
+      }
+      throw new LlmError(`LLM request failed with status ${response.status}${providerMessage}`, {
         status: response.status,
         retryable,
-        retryAfterMs: retryable ? retryAfterMs(response.headers.get("retry-after")) : undefined
+        retryAfterMs: retryable ? retryAfterMs(response.headers.get("retry-after")) : undefined,
+        providerMessage
       });
     }
     const body = await response.json().catch(() => undefined);

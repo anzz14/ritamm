@@ -32,6 +32,20 @@ describe("categorization orchestration", () => {
     expect(result.every((item) => item.categorized_by === "llm")).toBe(true);
   });
 
+  it("normalizes forbidden optional fields without re-asking the LLM", async () => {
+    let call = 0;
+    const llm = {
+      chatJson: async () => {
+        call += 1;
+        return categorizationSchema.parse([{ ...good[0], company: "Not a company" }, good[1]]);
+      }
+    };
+    const result = await categorizeAll(rows, { llm, ctx, logger });
+    expect(call).toBe(1);
+    expect(result[0]?.company).toBeNull();
+    expect(result.every((item) => item.categorized_by === "llm")).toBe(true);
+  });
+
   it("uses rules fallback when the LLM always throws", async () => {
     const llm = { chatJson: async () => { throw new LlmError("offline test failure"); } };
     const result = await categorizeAll(rows, { llm, ctx, logger });

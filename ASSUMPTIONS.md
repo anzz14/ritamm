@@ -40,3 +40,4 @@
   2. Fjord Payments AS (sold on 18 November 2022 for $29,000,000.00 vs cost of $20,000,000.00) is recognized as a realized gain of $9,000,000.00, has an entry in `review.json` noting it was sold and excluded from NAV, and has 0 review flags.
 - **Why:** Realized investments do not form part of closing NAV because the fund no longer holds shares at quarter-end; the proceeds are reflected in cash.
 - **What would change if wrong:** If Fjord were retained in investments, NAV would be double-counted by the value of the shares and the cash proceeds received.
+`

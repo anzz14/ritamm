@@ -79,7 +79,9 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pipeli
         apiKey: env.LLM_API_KEY,
         baseUrl: env.LLM_BASE_URL,
         model: env.LLM_MODEL,
-        cacheDir: env.LLM_CACHE_DIR
+        cacheDir: env.LLM_CACHE_DIR,
+        maxRetries: 1,
+        timeoutMs: 10000
       })
     : {
         chatJson: async () => {

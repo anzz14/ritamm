@@ -17,6 +17,25 @@ describe("LLM client", () => {
     await expect(client.chatJson(messages, schema)).resolves.toEqual({ ok: true });
   });
 
+  it("sends the API key and JSON content type correctly", async () => {
+    let requestInit: RequestInit | undefined;
+    const client = new LlmClient({
+      apiKey: "secret",
+      baseUrl: "https://llm.test",
+      model: "model",
+      fetchImpl: async (_input, init) => {
+        requestInit = init;
+        return response("{\"ok\":true}");
+      }
+    });
+
+    await expect(client.chatJson(messages, schema)).resolves.toEqual({ ok: true });
+    expect(requestInit?.headers).toEqual({
+      Authorization: "Bearer secret",
+      "content-type": "application/json"
+    });
+  });
+
   it("retries 429 and honors Retry-After", async () => {
     let calls = 0;
     const slept: number[] = [];
